@@ -24,32 +24,46 @@ public class Promise<T> {
         return new Promise<>(r);
     }
 
+    public <T>Promise() {
+
+    }
+
     public Promise(Runnable runnable) {
         this.runnable = runnable;
-        executorService();
+        service = Utils.executorService();
     }
 
     private <T> Promise(Callable<T> t){
         callable = t;
-        executorService();
+        service = Utils.executorService();
+
     }
 
-    private synchronized ExecutorService executorService() {
-        if (service == null) {
-            service = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 10, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(), Utils.threadFactory("Promise-Executor",false));
-        }
-        return service;
-    }
+
 
     public Promise<T> then(Action<T> action) {
         iAction = new ThenAction<T>(iAction, action);
         return this;
     }
 
+    public Promise then(Action0 action0) {
+        iAction0 = new ThenAction0(iAction0, action0);
+        return this;
+    }
+
     public Promise<T> ui(Action<T> action) {
         iAction = new UIAction<T>(iAction, action);
         return this;
+    }
+
+    public Promise ui(Action0 action0) {
+        iAction0 = new UIAction0(iAction0, action0);
+        return this;
+    }
+
+    public <R> Promise<R> map(Fun0<T, R> fun0) {
+        iAction = new MapAction<T, R>(iAction, fun0);
+        return new Promise<>();
     }
 
     public Promise execute() {
@@ -73,12 +87,10 @@ public class Promise<T> {
     public void cancel() {
         if (!future.isCancelled())
             future.cancel(true);
-        if (service != null) {
-            service.shutdown();
-        }
+
     }
 
-    private class Loop<V> implements Runnable {
+    class Loop<V> implements Runnable {
         Future<V> future;
 
         public Loop(Future<V> future) {
@@ -105,7 +117,7 @@ public class Promise<T> {
     private class NamedRunnale implements Runnable {
         Runnable runnable;
 
-        public NamedRunnale(Runnable runnable) {
+        NamedRunnale(Runnable runnable) {
             this.runnable = runnable;
         }
 
@@ -117,6 +129,7 @@ public class Promise<T> {
             }
         }
     }
+
 
 
 }
