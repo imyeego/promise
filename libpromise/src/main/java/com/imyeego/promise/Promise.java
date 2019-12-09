@@ -11,12 +11,22 @@ import java.util.concurrent.TimeUnit;
 public class Promise<T> {
     private static ExecutorService service;
     private volatile IAction<T> iAction;
+    private volatile IAction0 iAction0;
     private Callable callable;
+    private Runnable runnable;
     private Future future;
     private IError iError;
 
     public static <T> Promise<T> of(Callable<T> t) {
         return new Promise<>(t);
+    }
+    public static Promise of(Runnable r) {
+        return new Promise<>(r);
+    }
+
+    public Promise(Runnable runnable) {
+        this.runnable = runnable;
+        executorService();
     }
 
     private <T> Promise(Callable<T> t){
@@ -39,6 +49,11 @@ public class Promise<T> {
 
     public Promise<T> ui(Action<T> action) {
         iAction = new UIAction<T>(iAction, action);
+        return this;
+    }
+
+    public Promise execute() {
+        service.execute(new NamedRunnale(runnable));
         return this;
     }
 
@@ -83,6 +98,22 @@ public class Promise<T> {
                     iError.error(e);
                 }
 //                e.printStackTrace();
+            }
+        }
+    }
+
+    private class NamedRunnale implements Runnable {
+        Runnable runnable;
+
+        public NamedRunnale(Runnable runnable) {
+            this.runnable = runnable;
+        }
+
+        @Override
+        public void run() {
+            runnable.run();
+            if (iAction0 != null) {
+                iAction0.execute();
             }
         }
     }
