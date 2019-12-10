@@ -12,6 +12,7 @@ public class Promise<T> {
     private static ExecutorService service;
     private volatile IAction<T> iAction;
     private volatile IAction0 iAction0;
+    private T t;
     private Callable callable;
     private Runnable runnable;
     private Future future;
@@ -24,7 +25,7 @@ public class Promise<T> {
         return new Promise<>(r);
     }
 
-    public <T>Promise() {
+    public <T> Promise() {
 
     }
 
@@ -39,7 +40,10 @@ public class Promise<T> {
 
     }
 
-
+    public Promise setCallable(Callable callable) {
+        this.callable = callable;
+        return this;
+    }
 
     public Promise<T> then(Action<T> action) {
         iAction = new ThenAction<T>(iAction, action);
@@ -62,8 +66,9 @@ public class Promise<T> {
     }
 
     public <R> Promise<R> map(Fun0<T, R> fun0) {
-        iAction = new MapAction<T, R>(iAction, fun0);
-        return new Promise<>();
+        Promise<R> promise = new Promise<R>();
+        iAction = new MapAction<T, R>(iAction, fun0, promise);
+        return promise;
     }
 
     public Promise execute() {
@@ -100,9 +105,10 @@ public class Promise<T> {
         @Override
         public void run() {
             try {
-                V t = future.get();
-                if (t != null && iAction != null) {
-                    iAction.execute((T) t);
+                V v = future.get();
+                t = (T) v;
+                if (v != null && iAction != null) {
+                    iAction.execute((T) v);
                 }
 
             } catch (InterruptedException | ExecutionException e) {

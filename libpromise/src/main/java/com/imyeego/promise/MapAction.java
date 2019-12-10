@@ -5,10 +5,12 @@ import java.util.concurrent.Future;
 
 public class MapAction<T, R> extends AbstractAction<T> {
     private Fun0<T, R> fun0;
+    private Promise<R> promise;
 
-    public MapAction(IAction<T> target, Fun0<T, R> fun0) {
+    public MapAction(IAction<T> target, Fun0<T, R> fun0, Promise<R> promise) {
         super(target);
         this.fun0 = fun0;
+        this.promise = promise;
     }
 
     @Override
@@ -16,7 +18,8 @@ public class MapAction<T, R> extends AbstractAction<T> {
         if (target != null) {
             target.execute(t);
         }
-        Promise.of(new WrapperCallable<R>(fun0, t)).make();
+        Callable<R> callable = new WrapperCallable<R>(fun0, t);
+        promise.setCallable(callable).make();
     }
 
     class WrapperCallable<R> implements Callable<R> {
