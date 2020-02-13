@@ -9,133 +9,67 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class Promise<T> {
-    private static ExecutorService service;
-    private volatile IAction<T> iAction;
-    private volatile IAction0 iAction0;
-    private T t;
-    private Callable callable;
-    private Runnable runnable;
-    private Future future;
-    private IError iError;
+    private final OnSubscribe<T> onSubscribe;
+
 
     public static <T> Promise<T> of(Callable<T> t) {
-        return new Promise<>(t);
-    }
-    public static Promise of(Runnable r) {
-        return new Promise<>(r);
-    }
-
-    public <T> Promise() {
+        return create(new OfOnSubscribe<>(t));
 
     }
 
-    public Promise(Runnable runnable) {
-        this.runnable = runnable;
-        service = Utils.executorService();
+    private Promise(OnSubscribe<T> onSubscribe) {
+        this.onSubscribe = onSubscribe;
     }
 
-    private <T> Promise(Callable<T> t){
-        callable = t;
-        service = Utils.executorService();
-
-    }
-
-    public Promise setCallable(Callable callable) {
-        this.callable = callable;
-        return this;
-    }
 
     public Promise<T> then(Action<T> action) {
-        iAction = new ThenAction<T>(iAction, action);
-        return this;
-    }
-
-    public Promise then(Action0 action0) {
-        iAction0 = new ThenAction0(iAction0, action0);
-        return this;
+        return create(new ThenOnSubscribe<>(this, action));
     }
 
     public Promise<T> ui(Action<T> action) {
-        iAction = new UIAction<T>(iAction, action);
         return this;
     }
 
-    public Promise ui(Action0 action0) {
-        iAction0 = new UIAction0(iAction0, action0);
-        return this;
+    public <R> Promise<R> map(Func<T, R> func) {
+        return create(new MapOnSubscribe<T, R>(this, func));
     }
 
-    public <R> Promise<R> map(Fun0<T, R> fun0) {
-        Promise<R> promise = new Promise<R>();
-        iAction = new MapAction<T, R>(iAction, fun0, promise);
-        return promise;
+    private static <T> Promise<T> create(OnSubscribe<T> f) {
+        return new Promise<T>(f);
     }
-
-    public Promise execute() {
-        service.execute(new NamedRunnale(runnable));
-        return this;
-    }
-
 
     public Promise<T> make() {
-        Future<T> future = service.submit(callable);
-        this.future = future;
-        service.execute(new Loop<T>(future));
+        return make(new Empty<>());
+    }
+
+    public Promise<T> make(Subscriber<? super T> subscriber) {
+        this.onSubscribe.call(subscriber);
         return this;
     }
 
     public Promise<T> error(Err err) {
-        iError = new Error(err);
+//        iError = new Error(err);
         return this;
     }
 
     public void cancel() {
-        if (!future.isCancelled())
-            future.cancel(true);
 
     }
 
-    class Loop<V> implements Runnable {
-        Future<V> future;
+    public interface OnSubscribe<T> extends Action<Subscriber<? super T>> {
+        // cover for generics insanity
+    }
 
-        public Loop(Future<V> future) {
-            this.future = future;
+    static final class Empty<T> implements Subscriber<T> {
+        @Override
+        public void onNext(T t) {
+
         }
 
         @Override
-        public void run() {
-            try {
-                V v = future.get();
-                t = (T) v;
-                if (v != null && iAction != null) {
-                    iAction.execute((T) v);
-                }
+        public void onError(Throwable e) {
 
-            } catch (InterruptedException | ExecutionException e) {
-                if (iError != null) {
-                    iError.error(e);
-                }
-//                e.printStackTrace();
-            }
         }
     }
-
-    private class NamedRunnale implements Runnable {
-        Runnable runnable;
-
-        NamedRunnale(Runnable runnable) {
-            this.runnable = runnable;
-        }
-
-        @Override
-        public void run() {
-            runnable.run();
-            if (iAction0 != null) {
-                iAction0.execute();
-            }
-        }
-    }
-
-
 
 }

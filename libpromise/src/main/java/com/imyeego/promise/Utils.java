@@ -29,8 +29,13 @@ public class Utils {
 
     public static synchronized ExecutorService executorService() {
         if (service == null) {
-            service = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 10, TimeUnit.SECONDS,
-                    new SynchronousQueue<Runnable>(), Utils.threadFactory("Promise-Executor",false));
+            synchronized (Utils.class) {
+                if (service == null) {
+                    service = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 10, TimeUnit.SECONDS,
+                            new SynchronousQueue<Runnable>(), Utils.threadFactory("Promise-Executor",false));
+                }
+            }
+
         }
         return service;
     }
