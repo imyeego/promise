@@ -27,7 +27,7 @@ public class Promise<T> {
     }
 
     public Promise<T> ui(Action<T> action) {
-        return this;
+        return create(new UIOnSubscribe<T>(this, action));
     }
 
     public <R> Promise<R> map(Func<T, R> func) {
