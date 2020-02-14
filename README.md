@@ -15,16 +15,17 @@
 ```
 - gradle
 
-`implementation 'com.imyeego.promise:promise-all:1.0.0'`
+`implementation 'com.imyeego.promise:promise-all:1.0.2'`
 ### usage
 
 ```
 Promise.of(()->{
            Thread.sleep(4000);
-           return "promise";
-        }).then(s -> {
-            // do something
+           return "123";
+        }).map(Integer::parseInt).then(s -> {
+            Log.e("promise", "" + s);
         }).ui(s -> {
-            // ui option
+            tv.setText(String.valueOf(s + 7));
+            Toast.makeText(MainActivity.this, "" + (s + 7), Toast.LENGTH_SHORT).show();
         }).make();
 ```
