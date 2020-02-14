@@ -18,22 +18,6 @@ public class MapAction<T, R> extends AbstractAction<T> {
         if (target != null) {
             target.execute(t);
         }
-        Callable<R> callable = new WrapperCallable<R>(fun0, t);
-        promise.setCallable(callable).make();
     }
 
-    class WrapperCallable<R> implements Callable<R> {
-        Fun0<T, R> fun0;
-        T t;
-
-        public WrapperCallable(Fun0<T, R> fun0, T t) {
-            this.t = t;
-            this.fun0 = fun0;
-        }
-
-        @Override
-        public R call() throws Exception {
-            return fun0.call(t);
-        }
-    }
 }

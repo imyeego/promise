@@ -12,7 +12,8 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     @Override
     public void call(Subscriber<? super T> subscriber) {
-
+        UISubscriber<T> parent = new UISubscriber<>(subscriber, then);
+        source.make(parent);
     }
 
     static final class UISubscriber<T> implements Subscriber<T> {
