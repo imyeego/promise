@@ -11,7 +11,7 @@ import com.imyeego.promise.Promise;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tv;
-
+    private int count = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,10 +21,14 @@ public class MainActivity extends AppCompatActivity {
            Thread.sleep(4000);
            return "123";
         }).map(Integer::parseInt).then(s -> {
-            Log.e("promise", "" + s);
+            Log.e("promise then", "" + s);
         }).ui(s -> {
             tv.setText(String.valueOf(s + 7));
             Toast.makeText(MainActivity.this, "" + (s + 7), Toast.LENGTH_SHORT).show();
+            Log.e("promise ui", Thread.currentThread().getName() + ": " + s);
+            count = 4;
+        }).then(s -> {
+            Log.e("promise then", Thread.currentThread().getName() + ": " + count);
         }).make();
 
 
