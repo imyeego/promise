@@ -11,7 +11,7 @@ import com.imyeego.promise.Promise;
 
 public class MainActivity extends AppCompatActivity {
     private TextView tv;
-
+    private int count = 2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,6 +25,10 @@ public class MainActivity extends AppCompatActivity {
         }).ui(s -> {
             tv.setText(String.valueOf(s + 7));
             Toast.makeText(MainActivity.this, "" + (s + 7), Toast.LENGTH_SHORT).show();
+            count = 4;
+        }).then(s -> {
+            Log.e("promise then", "" + count);
+
         }).make();
 
 
