@@ -29,9 +29,7 @@ public class OfOnSubscribe<T> implements Promise.OnSubscribe<T> {
         public void run() {
             try {
                 T t = future.get();
-                if (t != null) {
-                    subscriber.onNext(t);
-                }
+                subscriber.onNext(t);
             } catch (InterruptedException | ExecutionException e) {
                 subscriber.onError(e);
             }

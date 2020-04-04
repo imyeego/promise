@@ -1,9 +1,14 @@
 package com.imyeego.promise;
 
+import android.util.Log;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     final Promise<T> source;
     final Action<T> then;
+    AtomicBoolean done = new AtomicBoolean(false);
 
     public UIOnSubscribe(Promise<T> source, Action<T> then) {
         this.source = source;
@@ -16,7 +21,7 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
         source.make(parent);
     }
 
-    static final class UISubscriber<T> implements Subscriber<T> {
+    final class UISubscriber<T> implements Subscriber<T> {
         final Subscriber<? super T> actual;
         final Action<T> action;
         final Object mainLock = new Object();
@@ -33,10 +38,13 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
             synchronized (mainLock) {
                 try {
                     mainLock.wait();
-                    actual.onNext(t);
                 } catch (InterruptedException e) {
-//                    e.printStackTrace();
+                    onError(e);
+                    return;
                 }
+                if (done.get())
+                    actual.onNext(t);
+
             }
         }
 
@@ -46,7 +54,7 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
         }
     }
 
-    static final class UIRunnable<T> implements Runnable {
+    final class UIRunnable<T> implements Runnable {
         private Action<T> action;
         private T t;
         private Object lock;
@@ -59,7 +67,12 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
         @Override
         public void run() {
-            action.call(t);
+            try {
+                action.call(t);
+                done.getAndSet(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             synchronized (lock) {
                 lock.notify();
             }

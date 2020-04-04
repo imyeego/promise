@@ -27,7 +27,12 @@ public class ThenOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
         @Override
         public void onNext(T t) {
-            action.call(t);
+            try {
+                action.call(t);
+            } catch (Exception e) {
+                onError(e);
+                return;
+            }
             actual.onNext(t);
         }
 

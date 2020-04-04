@@ -27,7 +27,13 @@ public class MapOnSubscribe<T, R> implements Promise.OnSubscribe<R> {
 
         @Override
         public void onNext(T t) {
-            R result = mapper.call(t);
+            R result = null;
+            try {
+                result = mapper.call(t);
+            } catch (Exception e) {
+                onError(e);
+                return;
+            }
             actual.onNext(result);
         }
 

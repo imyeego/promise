@@ -47,9 +47,8 @@ public class Promise<T> {
         return this;
     }
 
-    public Promise<T> error(Err err) {
-//        iError = new Error(err);
-        return this;
+    public Promise<T> excep(Err err) {
+        return create(new CatchOnSubscribe<T>(this, err));
     }
 
     public void cancel() {

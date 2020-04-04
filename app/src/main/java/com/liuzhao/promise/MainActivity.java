@@ -25,10 +25,13 @@ public class MainActivity extends AppCompatActivity {
         }).ui(s -> {
             tv.setText(String.valueOf(s + 7));
             Toast.makeText(MainActivity.this, "" + (s + 7), Toast.LENGTH_SHORT).show();
+//            throw new NullPointerException();
             Log.e("promise ui", Thread.currentThread().getName() + ": " + s);
-            count = 4;
+            count = 9;
         }).then(s -> {
             Log.e("promise then", Thread.currentThread().getName() + ": " + count);
+        }).excep(e -> {
+            e.printStackTrace();
         }).make();
 
 
