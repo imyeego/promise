@@ -4,6 +4,7 @@ public class ThenOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     final Promise<T> source;
     final Action<T> then;
+    ThenSubscriber<T> parent;
 
     public ThenOnSubscribe(Promise<T> source, Action<T> then) {
         this.source = source;
@@ -12,8 +13,13 @@ public class ThenOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     @Override
     public void call(Subscriber<? super T> subscriber) {
-        ThenSubscriber<T> thenOnSubscribe = new ThenSubscriber<>(subscriber, then);
-        source.make(thenOnSubscribe);
+        parent = new ThenSubscriber<>(subscriber, then);
+        source.make(parent);
+    }
+
+    @Override
+    public void cancel(Subscriber<? super T> subscriber) {
+        source.cancel(parent);
     }
 
     static final class ThenSubscriber<T> implements Subscriber<T> {

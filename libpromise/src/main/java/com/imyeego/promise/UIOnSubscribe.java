@@ -9,6 +9,7 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
     final Promise<T> source;
     final Action<T> then;
     AtomicBoolean done = new AtomicBoolean(false);
+    UISubscriber<T> parent;
 
     public UIOnSubscribe(Promise<T> source, Action<T> then) {
         this.source = source;
@@ -17,8 +18,13 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     @Override
     public void call(Subscriber<? super T> subscriber) {
-        UISubscriber<T> parent = new UISubscriber<>(subscriber, then);
+        parent = new UISubscriber<>(subscriber, then);
         source.make(parent);
+    }
+
+    @Override
+    public void cancel(Subscriber<? super T> subscriber) {
+        source.cancel(parent);
     }
 
     final class UISubscriber<T> implements Subscriber<T> {

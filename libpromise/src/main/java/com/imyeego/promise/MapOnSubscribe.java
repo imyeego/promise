@@ -3,6 +3,7 @@ package com.imyeego.promise;
 public class MapOnSubscribe<T, R> implements Promise.OnSubscribe<R> {
     final Promise<T> source;
     final Func<? super T, ? extends R> func;
+    MapSubscriber<T, R> parent;
 
     public MapOnSubscribe(Promise<T> source, Func<? super T, ? extends R> func) {
         this.source = source;
@@ -11,8 +12,13 @@ public class MapOnSubscribe<T, R> implements Promise.OnSubscribe<R> {
 
     @Override
     public void call(Subscriber<? super R> subscriber) {
-        MapSubscriber<T, R> parent = new MapSubscriber<>(subscriber, func);
+        parent = new MapSubscriber<>(subscriber, func);
         source.make(parent);
+    }
+
+    @Override
+    public void cancel(Subscriber<? super R> subscriber) {
+        source.cancel(parent);
     }
 
     static final class MapSubscriber<T, R> implements Subscriber<T> {

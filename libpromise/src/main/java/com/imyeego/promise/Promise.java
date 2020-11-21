@@ -17,6 +17,10 @@ public class Promise<T> {
 
     }
 
+    public static <T> Promise<T> forEach(Fun1<T> t, long period) {
+        return create(new ForOnSubscribe<T>(t, period));
+    }
+
     private Promise(OnSubscribe<T> onSubscribe) {
         this.onSubscribe = onSubscribe;
     }
@@ -52,11 +56,15 @@ public class Promise<T> {
     }
 
     public void cancel() {
+        cancel(new Empty<>());
+    }
 
+    public void cancel(Subscriber<? super T> subscriber) {
+        this.onSubscribe.cancel(subscriber);
     }
 
     public interface OnSubscribe<T> extends Action<Subscriber<? super T>> {
-        // cover for generics insanity
+        void cancel(Subscriber<? super T> subscriber);
     }
 
     static final class Empty<T> implements Subscriber<T> {

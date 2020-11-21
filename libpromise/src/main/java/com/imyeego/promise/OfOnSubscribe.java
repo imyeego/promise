@@ -16,6 +16,11 @@ public class OfOnSubscribe<T> implements Promise.OnSubscribe<T> {
         Utils.executorService().execute(new SubscriberFutureRunnable<T>(subscriber, future));
     }
 
+    @Override
+    public void cancel(Subscriber<? super T> subscriber) {
+
+    }
+
     static class SubscriberFutureRunnable<T> implements Runnable {
         final Subscriber<? super T> subscriber;
         final Future<T> future;

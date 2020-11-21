@@ -5,6 +5,8 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,6 +16,7 @@ public class Utils {
 
     private static volatile Handler handler;
     private static volatile ExecutorService service;
+    private static volatile ScheduledExecutorService scheduledService;
 
     public static Handler getMainHandler() {
         if (handler == null) {
@@ -38,6 +41,18 @@ public class Utils {
 
         }
         return service;
+    }
+
+    public static synchronized ScheduledExecutorService scheduledService() {
+        if (scheduledService == null) {
+            synchronized (Utils.class) {
+                if (scheduledService == null) {
+                    scheduledService = Executors.newScheduledThreadPool(Integer.MAX_VALUE, threadFactory("Promise-Scheduled-Executor", false));
+                }
+            }
+
+        }
+        return scheduledService;
     }
 
     public static ThreadFactory threadFactory(final String name, final boolean daemon) {

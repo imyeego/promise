@@ -4,6 +4,7 @@ public class CatchOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     final Promise<T> source;
     final Err err;
+    CatchSubscriber<T> parent;
 
     public CatchOnSubscribe(Promise<T> source, Err err) {
         this.source = source;
@@ -12,8 +13,13 @@ public class CatchOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
     @Override
     public void call(Subscriber<? super T> subscriber) {
-        CatchSubscriber<T> catchSubscriber = new CatchSubscriber<>(subscriber, err);
-        source.make(catchSubscriber);
+        parent = new CatchSubscriber<>(subscriber, err);
+        source.make(parent);
+    }
+
+    @Override
+    public void cancel(Subscriber<? super T> subscriber) {
+        source.cancel(parent);
     }
 
     static final class CatchSubscriber<T> implements Subscriber<T> {

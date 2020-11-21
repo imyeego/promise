@@ -3,20 +3,35 @@ package com.liuzhao.promise;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.imyeego.promise.Fun0;
 import com.imyeego.promise.Promise;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+
 public class MainActivity extends AppCompatActivity {
     private TextView tv;
+    private TextView tv1;
+    private Button btStart;
+    private Button btStop;
     private int count = 2;
+
+    Promise<?> promise;
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tv = findViewById(R.id.tv);
+        tv1 = findViewById(R.id.tv1);
+        btStart = findViewById(R.id.bt_start);
+        btStop = findViewById(R.id.bt_stop);
         Promise.of(()->{
            Thread.sleep(4000);
            return "123";
@@ -34,6 +49,20 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }).make();
 
+        btStart.setOnClickListener(v -> startForeachByPromise());
+        btStop.setOnClickListener(v -> stopForeachPromise());
+    }
 
+    private void startForeachByPromise() {
+        promise = Promise.forEach(() -> {
+            long result = System.currentTimeMillis();
+            return dateFormat.format(new Date(result));
+        }, 2000).ui(result -> {
+            tv1.setText(String.valueOf(result));
+        }).make();
+    }
+
+    private void stopForeachPromise() {
+        promise.cancel();
     }
 }
