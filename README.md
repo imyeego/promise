@@ -34,3 +34,8 @@ Promise.of(()->{
             e.printStackTrace();
         }).make();
 ```
+
+## upload to maven
+1. ./gradlew install
+2. ./gradles bintrayUpload
+
