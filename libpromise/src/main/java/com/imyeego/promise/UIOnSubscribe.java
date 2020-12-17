@@ -40,16 +40,16 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
         @Override
         public void onNext(T t) {
-            Utils.getMainHandler().post(new UIRunnable<T>(action, t, mainLock));
             synchronized (mainLock) {
                 try {
+                    Utils.getMainHandler().post(new UIRunnable<T>(action, t, mainLock));
                     mainLock.wait();
-                } catch (InterruptedException e) {
-                    onError(e);
-                    return;
-                }
-                if (done.get())
                     actual.onNext(t);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    onError(e);
+                }
+
 
             }
         }
@@ -73,12 +73,7 @@ public class UIOnSubscribe<T> implements Promise.OnSubscribe<T> {
 
         @Override
         public void run() {
-            try {
-                action.call(t);
-                done.getAndSet(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            action.call(t);
             synchronized (lock) {
                 lock.notify();
             }

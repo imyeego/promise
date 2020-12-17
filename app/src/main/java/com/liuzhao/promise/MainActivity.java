@@ -21,6 +21,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btStop;
     private int count = 2;
 
+    private int inTime = 10;
+
     Promise<?> promise;
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -55,10 +57,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void startForeachByPromise() {
         promise = Promise.forEach(() -> {
-            long result = System.currentTimeMillis();
-            return dateFormat.format(new Date(result));
-        }, 2000).ui(result -> {
-            tv1.setText(String.valueOf(result));
+            return --count;
+        }, 1000).ui(result -> {
+            tv1.setText("确定(" + result + "s)");
+            if (count == 0) {
+                promise.cancel();
+            }
         }).make();
     }
 
